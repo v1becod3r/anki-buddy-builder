@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, BookOpen, BarChart3, Settings } from 'lucide-react';
 import StudySession from '@/components/StudySession';
 import CardCreator from '@/components/CardCreator';
-import Statistics from '@/components/Statistics';
+import CardManager from '@/components/CardManager';
 import { FlashCard } from '@/types/flashcard';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'home' | 'study' | 'create' | 'stats'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'study' | 'create' | 'manage'>('home');
   const [flashcards, setFlashcards] = useState<FlashCard[]>([]);
   const [studyCards, setStudyCards] = useState<FlashCard[]>([]);
 
@@ -46,6 +45,10 @@ const Index = () => {
     ));
   };
 
+  const deleteCard = (cardId: string) => {
+    setFlashcards(flashcards.filter(card => card.id !== cardId));
+  };
+
   const getCardsForReview = () => {
     const now = new Date();
     return flashcards.filter(card => new Date(card.nextReview) <= now);
@@ -78,11 +81,12 @@ const Index = () => {
     );
   }
 
-  if (currentView === 'stats') {
+  if (currentView === 'manage') {
     return (
-      <Statistics 
+      <CardManager 
         cards={flashcards}
         onBack={() => setCurrentView('home')}
+        onDeleteCard={deleteCard}
       />
     );
   }
@@ -158,12 +162,12 @@ const Index = () => {
         {/* Secondary Actions */}
         <div className="flex justify-center gap-4 mt-8">
           <Button
-            onClick={() => setCurrentView('stats')}
+            onClick={() => setCurrentView('manage')}
             variant="ghost"
             className="text-gray-600 hover:text-gray-800 hover:bg-white/50"
           >
-            <BarChart3 className="w-5 h-5 mr-2" />
-            Statistics
+            <Settings className="w-5 h-5 mr-2" />
+            Manage Cards
           </Button>
         </div>
 
