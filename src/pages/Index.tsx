@@ -5,18 +5,26 @@ import { Plus, BookOpen, BarChart3, Settings } from 'lucide-react';
 import StudySession from '@/components/StudySession';
 import CardCreator from '@/components/CardCreator';
 import CardManager from '@/components/CardManager';
+import ConfigDialog from '@/components/ConfigDialog';
 import { FlashCard } from '@/types/flashcard';
+import { SpacedRepetitionConfig, defaultConfig } from '@/types/config';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'home' | 'study' | 'create' | 'manage'>('home');
   const [flashcards, setFlashcards] = useState<FlashCard[]>([]);
   const [studyCards, setStudyCards] = useState<FlashCard[]>([]);
+  const [config, setConfig] = useState<SpacedRepetitionConfig>(defaultConfig);
 
-  // Load flashcards from localStorage on component mount
+  // Load flashcards and config from localStorage on component mount
   useEffect(() => {
     const savedCards = localStorage.getItem('anki-cards');
     if (savedCards) {
       setFlashcards(JSON.parse(savedCards));
+    }
+    
+    const savedConfig = localStorage.getItem('anki-config');
+    if (savedConfig) {
+      setConfig(JSON.parse(savedConfig));
     }
   }, []);
 
@@ -24,6 +32,11 @@ const Index = () => {
   useEffect(() => {
     localStorage.setItem('anki-cards', JSON.stringify(flashcards));
   }, [flashcards]);
+
+  // Save config to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('anki-config', JSON.stringify(config));
+  }, [config]);
 
   const addCard = (front: string, back: string) => {
     const newCard: FlashCard = {
@@ -66,6 +79,7 @@ const Index = () => {
     return (
       <StudySession 
         cards={studyCards}
+        config={config}
         onCardUpdate={updateCard}
         onSessionEnd={() => setCurrentView('home')}
       />
@@ -169,6 +183,11 @@ const Index = () => {
             <Settings className="w-5 h-5 mr-2" />
             Manage Cards
           </Button>
+          
+          <ConfigDialog 
+            config={config}
+            onConfigChange={setConfig}
+          />
         </div>
 
         {/* Recent Activity */}

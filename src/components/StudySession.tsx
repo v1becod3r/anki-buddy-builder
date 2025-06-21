@@ -1,70 +1,30 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import { FlashCard, ReviewResult } from '@/types/flashcard';
+import { SpacedRepetitionConfig } from '@/types/config';
 import FlashCardComponent from '@/components/FlashCardComponent';
+import { calculateNextReview } from '@/utils/spacedRepetition';
 
 interface StudySessionProps {
   cards: FlashCard[];
+  config: SpacedRepetitionConfig;
   onCardUpdate: (card: FlashCard) => void;
   onSessionEnd: () => void;
 }
 
-const StudySession: React.FC<StudySessionProps> = ({ cards, onCardUpdate, onSessionEnd }) => {
+const StudySession: React.FC<StudySessionProps> = ({ cards, config, onCardUpdate, onSessionEnd }) => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [sessionCards, setSessionCards] = useState(cards);
 
   const currentCard = sessionCards[currentCardIndex];
 
-  const calculateNextReview = (card: FlashCard, result: ReviewResult): FlashCard => {
-    let { interval, repetition, easeFactor } = card;
-    
-    switch (result) {
-      case 'again':
-        repetition = 0;
-        interval = 1;
-        break;
-      case 'hard':
-        repetition += 1;
-        interval = Math.max(1, Math.round(interval * 1.2));
-        easeFactor = Math.max(1.3, easeFactor - 0.15);
-        break;
-      case 'good':
-        repetition += 1;
-        if (repetition === 1) {
-          interval = 6;
-        } else if (repetition === 2) {
-          interval = 1;
-        } else {
-          interval = Math.round(interval * easeFactor);
-        }
-        break;
-      case 'easy':
-        repetition += 1;
-        interval = Math.round(interval * easeFactor * 1.3);
-        easeFactor = Math.min(2.5, easeFactor + 0.15);
-        break;
-    }
-
-    const nextReview = new Date();
-    nextReview.setDate(nextReview.getDate() + interval);
-
-    return {
-      ...card,
-      interval,
-      repetition,
-      easeFactor,
-      nextReview,
-    };
-  };
-
   const handleAnswer = (result: ReviewResult) => {
     if (!currentCard) return;
 
-    const updatedCard = calculateNextReview(currentCard, result);
+    const updatedCard = calculateNextReview(currentCard, result, config);
     onCardUpdate(updatedCard);
 
     // Move to next card or end session
